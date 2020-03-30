@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/caconka/go-template/connectors"
 	"github.com/caconka/go-template/handlers"
 	"github.com/caconka/go-template/services"
 
@@ -21,8 +22,13 @@ func main() {
 	port := 8080
 	addr := fmt.Sprintf("0.0.0.0:%d", port)
 	server := services.NewServer(addr, 5*time.Second, 10*time.Second, 60*time.Second)
-	healthCheckHandler := handlers.HealthCheck
-	server.AddRoute("/health", healthCheckHandler)
+
+	jokeProvider := connectors.NewJokeProvider()
+	jokeService := services.NewJokeService(jokeProvider)
+	jokeHandler := handlers.NewJokeHandler(jokeService)
+
+	server.AddRoute("/health", handlers.HealthCheck)
+	server.AddRoute("/joke", jokeHandler.GetRandomJoke)
 
 	fmt.Println(fmt.Sprintf("Server address :%s ", addr))
 	err := server.Start()

@@ -24,5 +24,5 @@ func HealthCheck(rw http.ResponseWriter, r *http.Request) {
 		rw.WriteHeader(http.StatusInternalServerError)
 	}
 
-	logger.LogRequest(r, "health")
+	utils.LogRequest(r, "health")
 }
