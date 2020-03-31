@@ -5,21 +5,23 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 type server struct {
-	router   *http.ServeMux
+	router   *httprouter.Router
 	logger   *log.Logger
 	instance *http.Server
 }
 
 type Server interface {
 	Start() error
-	AddRoute(path string, handler http.HandlerFunc)
+	AddRoute(method, path string, handler http.HandlerFunc)
 }
 
 func NewServer(listenAddr string, readTimeout, writeTimeout, idleTimeout time.Duration) Server {
-	router := http.NewServeMux()
+	router := httprouter.New()
 	logger := log.New(os.Stdout, "go-template-http: ", log.Ldate)
 
 	s := &http.Server{
@@ -42,6 +44,6 @@ func (s *server) Start() error {
 	return s.instance.ListenAndServe()
 }
 
-func (s *server) AddRoute(path string, handler http.HandlerFunc) {
-	s.router.HandleFunc(path, handler)
+func (s *server) AddRoute(method, path string, handler http.HandlerFunc) {
+	s.router.HandlerFunc(method, path, handler)
 }

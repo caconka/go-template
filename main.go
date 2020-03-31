@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
@@ -23,12 +24,7 @@ func main() {
 	addr := fmt.Sprintf("0.0.0.0:%d", port)
 	server := services.NewServer(addr, 5*time.Second, 10*time.Second, 60*time.Second)
 
-	jokeProvider := connectors.NewJokeProvider()
-	jokeService := services.NewJokeService(jokeProvider)
-	jokeHandler := handlers.NewJokeHandler(jokeService)
-
-	server.AddRoute("/health", handlers.HealthCheck)
-	server.AddRoute("/joke", jokeHandler.GetRandomJoke)
+	addRoutes(server)
 
 	fmt.Println(fmt.Sprintf("Server address :%s ", addr))
 	err := server.Start()
@@ -36,4 +32,13 @@ func main() {
 		log.Fatal(fmt.Sprintf("listen and serve err %s", err))
 	}
 
+}
+
+func addRoutes(s services.Server) {
+	jokeProvider := connectors.NewJokeProvider()
+	jokeService := services.NewJokeService(jokeProvider)
+	jokeHandler := handlers.NewJokeHandler(jokeService)
+
+	s.AddRoute(http.MethodGet, "/health", handlers.HealthCheck)
+	s.AddRoute(http.MethodGet, "/joke", jokeHandler.GetRandomJoke)
 }
