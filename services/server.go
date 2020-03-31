@@ -17,7 +17,7 @@ type server struct {
 
 type Server interface {
 	Start() error
-	AddRoute(method, path string, handler http.HandlerFunc)
+	AddRoute(method, path string, hf http.Handler, middlewares ...func(http.Handler) http.Handler)
 }
 
 func NewServer(listenAddr string, readTimeout, writeTimeout, idleTimeout time.Duration) Server {
@@ -44,6 +44,10 @@ func (s *server) Start() error {
 	return s.instance.ListenAndServe()
 }
 
-func (s *server) AddRoute(method, path string, handler http.HandlerFunc) {
-	s.router.HandlerFunc(method, path, handler)
+func (s *server) AddRoute(method, path string, h http.Handler, middlewares ...func(http.Handler) http.Handler) {
+	for _, md := range middlewares {
+		h = md(h)
+	}
+
+	s.router.Handler(method, path, h)
 }

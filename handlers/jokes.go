@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/caconka/go-template/handlers/adapters"
+	"github.com/caconka/go-template/models"
 	"github.com/caconka/go-template/services"
 	"github.com/caconka/go-template/utils"
 
@@ -25,29 +27,36 @@ func NewJokeHandler(s services.JokeService) *JokeHandler {
 	}
 }
 
-func (h *JokeHandler) GetRandomJoke(rw http.ResponseWriter, req *http.Request) {
-	joke, _ := h.Service.GetRandomJoke()
+func (h *JokeHandler) GetRandomJoke(w http.ResponseWriter, r *http.Request) {
+	if joke, err := h.Service.GetRandomJoke(); err != nil {
+		utils.LogRequest(r).Error(err.Error())
 
-	jokeDto := adapters.ConvertJokeToDto(joke)
-	utils.LogRequest(req).Info(fmt.Sprintf("joke id %s", jokeDto.ID))
-	rw.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(&models.CustomError{Message: err.Error()})
+	} else {
+		jokeDto := adapters.ConvertJokeToDto(joke)
+		utils.LogRequest(r).Info(fmt.Sprintf("joke id %s", jokeDto.ID))
 
-	fmt.Fprintf(rw, "%s", jokeDto.Joke)
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(jokeDto)
+	}
 }
 
-func (h *JokeHandler) GetJokeByID(rw http.ResponseWriter, req *http.Request) {
-	jokeID := httprouter.ParamsFromContext(req.Context()).ByName(paramJokeID)
+func (h *JokeHandler) GetJokeByID(w http.ResponseWriter, r *http.Request) {
+	jokeID := httprouter.ParamsFromContext(r.Context()).ByName(paramJokeID)
 
 	joke, err := h.Service.GetJokeByID(jokeID)
 
 	if err != nil {
-		utils.LogRequest(req).Error(fmt.Sprintf(err.Error()))
-		rw.WriteHeader(http.StatusNotFound)
+		utils.LogRequest(r).Error(fmt.Sprintf(err.Error()))
+
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(&models.CustomError{Message: err.Error()})
 	} else {
 		jokeDto := adapters.ConvertJokeToDto(joke)
-		utils.LogRequest(req).Info(fmt.Sprintf("joke id %s", jokeDto.ID))
-		rw.WriteHeader(http.StatusOK)
+		utils.LogRequest(r).Info(fmt.Sprintf("joke id %s", jokeDto.ID))
 
-		fmt.Fprintf(rw, "%s", jokeDto.Joke)
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(jokeDto)
 	}
 }

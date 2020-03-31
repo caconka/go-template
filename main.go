@@ -8,6 +8,7 @@ import (
 
 	"github.com/caconka/go-template/connectors"
 	"github.com/caconka/go-template/handlers"
+	md "github.com/caconka/go-template/middlewares"
 	"github.com/caconka/go-template/services"
 
 	log "github.com/sirupsen/logrus"
@@ -31,7 +32,6 @@ func main() {
 	if err != nil {
 		log.Fatal(fmt.Sprintf("listen and serve err %s", err))
 	}
-
 }
 
 func addRoutes(s services.Server) {
@@ -39,7 +39,7 @@ func addRoutes(s services.Server) {
 	jokeService := services.NewJokeService(jokeProvider)
 	jokeHandler := handlers.NewJokeHandler(jokeService)
 
-	s.AddRoute(http.MethodGet, "/health", handlers.HealthCheck)
-	s.AddRoute(http.MethodGet, "/joke", jokeHandler.GetRandomJoke)
-	s.AddRoute(http.MethodGet, "/joke/:id", jokeHandler.GetJokeByID)
+	s.AddRoute(http.MethodGet, "/health", http.HandlerFunc(handlers.HealthCheck), md.ContentTypeJson)
+	s.AddRoute(http.MethodGet, "/joke", http.HandlerFunc(jokeHandler.GetRandomJoke), md.ContentTypeJson)
+	s.AddRoute(http.MethodGet, "/joke/:id", http.HandlerFunc(jokeHandler.GetJokeByID), md.ContentTypeJson)
 }
