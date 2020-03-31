@@ -10,6 +10,7 @@ import (
 
 	"github.com/caconka/go-template/connectors/adapters"
 	tpModels "github.com/caconka/go-template/connectors/models"
+	"github.com/caconka/go-template/connectors/utils"
 	"github.com/caconka/go-template/models"
 	"github.com/caconka/go-template/services"
 )
@@ -41,10 +42,9 @@ func (provider *jokeProvider) GetRandomJoke() (res *models.Joke, err error) {
 		}
 	}()
 
-	var req *http.Request
-	if req, err = newHTTPRequest(http.MethodGet, provider.apiEndpoint, nil, nil); err == nil {
+	if req, err := utils.NewHTTPRequest(http.MethodGet, provider.apiEndpoint, nil, nil); err == nil {
 		req.Header.Add("Accept", "application/json")
-		resp, err := makeHTTPQuery(req)
+		resp, err := utils.MakeHTTPQuery(req)
 
 		if err != nil {
 			return nil, err
@@ -59,11 +59,18 @@ func (provider *jokeProvider) GetRandomJoke() (res *models.Joke, err error) {
 }
 
 func (provider *jokeProvider) GetJokeByID(id string) (res *models.Joke, err error) {
-	req, err := newHTTPRequest(http.MethodGet, buildRetrieveEndpointURL(provider.apiEndpoint, id), nil, nil)
+
+	defer func() {
+		if err != nil {
+			log.Error(err)
+		}
+	}()
+
+	req, err := utils.NewHTTPRequest(http.MethodGet, buildEndpointURL(provider.apiEndpoint, id), nil, nil)
 
 	if err == nil {
 		req.Header.Add("Accept", "application/json")
-		resp, err := makeHTTPQuery(req)
+		resp, err := utils.MakeHTTPQuery(req)
 
 		if err != nil {
 			return nil, err
@@ -87,4 +94,8 @@ func (provider *jokeProvider) GetJokeByID(id string) (res *models.Joke, err erro
 	}
 
 	return
+}
+
+func buildEndpointURL(basePath, id string) string {
+	return fmt.Sprintf("%s/j/%s", basePath, id)
 }
