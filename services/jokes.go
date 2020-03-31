@@ -12,7 +12,7 @@ type (
 
 	JokeProvider interface {
 		GetRandomJoke() (*models.Joke, error)
-		GetJokeById(id string) (*models.Joke, error)
+		GetJokeByID(id string) (*models.Joke, error)
 	}
 )
 
@@ -25,7 +25,7 @@ func (j *jokeService) GetRandomJoke() (*models.Joke, error) {
 }
 
 func (j *jokeService) GetJokeByID(id string) (*models.Joke, error) {
-	return j.provider.GetJokeById(id)
+	return j.provider.GetJokeByID(id)
 }
 
 func NewJokeService(provider JokeProvider) JokeService {

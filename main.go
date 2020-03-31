@@ -41,4 +41,5 @@ func addRoutes(s services.Server) {
 
 	s.AddRoute(http.MethodGet, "/health", handlers.HealthCheck)
 	s.AddRoute(http.MethodGet, "/joke", jokeHandler.GetRandomJoke)
+	s.AddRoute(http.MethodGet, "/joke/:id", jokeHandler.GetJokeByID)
 }

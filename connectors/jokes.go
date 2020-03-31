@@ -33,7 +33,7 @@ func NewJokeProvider() services.JokeProvider {
 	}
 }
 
-func (j *jokeProvider) GetRandomJoke() (res *models.Joke, err error) {
+func (provider *jokeProvider) GetRandomJoke() (res *models.Joke, err error) {
 
 	defer func() {
 		if err != nil {
@@ -42,7 +42,7 @@ func (j *jokeProvider) GetRandomJoke() (res *models.Joke, err error) {
 	}()
 
 	var req *http.Request
-	if req, err = newHTTPRequest(http.MethodGet, j.apiEndpoint, nil, nil); err == nil {
+	if req, err = newHTTPRequest(http.MethodGet, provider.apiEndpoint, nil, nil); err == nil {
 		req.Header.Add("Accept", "application/json")
 		resp, err := makeHTTPQuery(req)
 
@@ -58,9 +58,10 @@ func (j *jokeProvider) GetRandomJoke() (res *models.Joke, err error) {
 	return
 }
 
-func (j *jokeProvider) GetJokeById(id string) (res *models.Joke, err error) {
-	var req *http.Request
-	if req, err = newHTTPRequest(http.MethodGet, buildRetrieveEndpointURL(j.apiEndpoint, id), nil, nil); err == nil {
+func (provider *jokeProvider) GetJokeByID(id string) (res *models.Joke, err error) {
+	req, err := newHTTPRequest(http.MethodGet, buildRetrieveEndpointURL(provider.apiEndpoint, id), nil, nil)
+
+	if err == nil {
 		req.Header.Add("Accept", "application/json")
 		resp, err := makeHTTPQuery(req)
 
@@ -84,5 +85,6 @@ func (j *jokeProvider) GetJokeById(id string) (res *models.Joke, err error) {
 		}
 
 	}
+
 	return
 }
